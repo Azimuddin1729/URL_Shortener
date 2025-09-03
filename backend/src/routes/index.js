@@ -59,8 +59,7 @@ router.post("/shortener",async(req,res)=>{
     if (!longUrl) {
         return res.status(400).json({ error: "URL is required" });
     }
-    // Here you would typically call a service to shorten the URL
-    // else{
+    
         try{
             const id=await redisClient.incr("gcounter");
             console.log('Generated ID:', id);
