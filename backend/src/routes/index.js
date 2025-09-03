@@ -38,17 +38,20 @@ connectRedis();
 
 router.get("/:shortUrlId",async(req,res)=>{
     const shortUrlId = req.params.shortUrlId;
-    const longUrl=await redisClient.hGet("url_list",shortUrlId);
-    try{
-        res.json({
-           "data": longUrl
-        })
-    }
-    catch(e){
-        console.error('Error fetching long URL:', e);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
+    try {
+    const longUrl = await redisClient.hGet("url_list", shortUrlId)
 
+    if (!longUrl) {
+      // not found
+      return res.status(404).send("Short URL not found")
+    }
+    const hasScheme = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//.test(longUrl)
+    const target = hasScheme ? longUrl : `https://${longUrl}`
+    return res.redirect(302, target)
+  } catch (e) {
+    console.error('Error fetching long URL or redirecting:', e)
+    return res.status(500).send("Internal Server Error")
+  }
 })
 
 router.post("/shortener",async(req,res)=>{
